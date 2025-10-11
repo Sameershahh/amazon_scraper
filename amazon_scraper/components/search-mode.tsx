@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
+// ✅ Fixed: setLogs now allows both array and updater function
 interface SearchModeProps {
   keyword: string;
   setKeyword: (v: string) => void;
   logs: string[];
-  setLogs: (v: string[]) => void;
+  setLogs: React.Dispatch<React.SetStateAction<string[]>>;  // <-- Fixed here
   onCsvDownloaded: () => void;   // ✅ from page.tsx
   onDeleteCsv: () => void;       // ✅ from page.tsx
   csvDownloaded: boolean;        // ✅ controls visibility

@@ -6,14 +6,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
-export function CsvMode() {
-  const [file, setFile] = useState<File | null>(null)
+// ✅ Added props interface to match how CsvMode is being used in page.tsx
+interface CsvModeProps {
+  file: File | null
+  onUploadFile: React.Dispatch<React.SetStateAction<File | null>>
+  message: string
+}
+
+export function CsvMode({ file: externalFile, onUploadFile, message }: CsvModeProps) {
+  const [file, setFile] = useState<File | null>(externalFile)
   const [logs, setLogs] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [tableData, setTableData] = useState<{ headers: string[]; rows: string[][] } | null>(null)
 
   async function handleRun() {
-    if (!file) {
+    const currentFile = file || externalFile
+    if (!currentFile) {
       alert("Please upload a CSV first.")
       return
     }
@@ -23,7 +31,7 @@ export function CsvMode() {
     setTableData(null)
 
     const formData = new FormData()
-    formData.append("file", file)
+    formData.append("file", currentFile)
 
     try {
       const res = await fetch("/api/run-csv-scraper", {
@@ -74,16 +82,25 @@ export function CsvMode() {
       <CardContent className="space-y-4">
         <div className="grid gap-2">
           <Label htmlFor="csv">Upload products.csv</Label>
-          <Input id="csv" type="file" accept=".csv" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          <Input
+            id="csv"
+            type="file"
+            accept=".csv"
+            onChange={(e) => {
+              const selected = e.target.files?.[0] || null
+              setFile(selected)
+              onUploadFile(selected)
+            }}
+          />
         </div>
 
         <div className="flex gap-3">
-          <Button onClick={handleRun} disabled={loading || !file}>
+          <Button onClick={handleRun} disabled={loading || !(file || externalFile)}>
             {loading ? "Running..." : "Run CSV Scraper"}
           </Button>
 
           <Button variant="outline" onClick={handleDownload}>
-             Download csv
+            Download csv
           </Button>
         </div>
 
@@ -129,6 +146,10 @@ export function CsvMode() {
           </div>
         )}
       </CardContent>
+      {/* ✅ Display external message if provided */}
+      {message && (
+        <div className="p-3 text-sm text-muted-foreground text-center">{message}</div>
+      )}
     </Card>
   )
 }
