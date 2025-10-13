@@ -1,0 +1,20 @@
+# --- Python / FastAPI ---
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+.env.*
+
+# --- Node / Next.js ---
+amazon_scraper/node_modules/
+amazon_scraper/.next/
+amazon_scraper/out/
+amazon_scraper/.env.local
+
+# --- OS / Editor ---
+.DS_Store
+.vscode/
+*.log
