@@ -17,19 +17,15 @@ from database import Base  # Base metadata
 # =========================
 # Database setup
 # =========================
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = settings.DATABASE_URL
 
-if not DATABASE_URL:
-    print("❌ DATABASE_URL not found. Please set it in your hosting environment.")
-    raise ValueError("DATABASE_URL not set in environment variables")
-    
-if DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    connect_args={"sslmode": "require"}
+    connect_args={"sslmode": "require"},
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
