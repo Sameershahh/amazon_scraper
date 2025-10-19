@@ -1,5 +1,5 @@
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+  process.env.NEXT_PUBLIC_API_URL || "https://amazon-scraper-api.up.railway.app/";
 
 // ------------------------------
 // Run Search Mode Scraper
