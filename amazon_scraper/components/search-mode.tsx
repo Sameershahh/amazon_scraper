@@ -6,89 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-// ✅ Fixed: setLogs now allows both array and updater function
 interface SearchModeProps {
   keyword: string;
   setKeyword: (v: string) => void;
   logs: string[];
-  setLogs: React.Dispatch<React.SetStateAction<string[]>>;  // <-- Fixed here
-  onCsvDownloaded: () => void;   // ✅ from page.tsx
-  onDeleteCsv: () => void;       // ✅ from page.tsx
-  csvDownloaded: boolean;        // ✅ controls visibility
-  resultCsv: string;             // ✅ filename (prices.csv)
+  setLogs: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export function SearchMode({
-  keyword,
-  setKeyword,
-  logs,
-  setLogs,
-  onCsvDownloaded,
-  onDeleteCsv,
-  csvDownloaded,
-  resultCsv,
-}: SearchModeProps) {
+export function SearchMode({ keyword, setKeyword, logs, setLogs }: SearchModeProps) {
   const [loading, setLoading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
-  async function runScraper() {
+  async function handleRun() {
     setLoading(true);
-    setLogs(["🚀 Starting scraper..."]);
+    setLogs(["Starting scraper..."]);
 
     try {
-      const res = await fetch("http://localhost:5000/run-scraper", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/run-scraper`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword, headless: false, max_items: 5 }),
+        body: JSON.stringify({ keyword, headless: true, max_items: 20 }),
       });
+      if (!res.ok) throw new Error("Scraper failed");
 
       const data = await res.json();
-
-      if (data.success) {
-        const newLogs = data.output
-          .split(/\r?\n/)
-          .filter((l: string) => l.trim() !== "");
-        setLogs((prev) => [...prev, ...newLogs, "✅ Scraper finished successfully!"]);
-      } else {
-        setLogs((prev) => [
-          ...prev,
-          `❌ Error: ${data.error || "Unknown error occurred."}`,
-        ]);
-      }
+      setLogs((prev) => [...prev, data.message]);
     } catch (err: any) {
-      setLogs((prev) => [...prev, `⚠️ Request failed: ${err.message}`]);
+      setLogs((prev) => [...prev, `Error: ${err.message}`]);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleDownload() {
-    try {
-      const response = await fetch("/api/download-csv");
-      if (!response.ok) throw new Error("Failed to download CSV");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = resultCsv;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      onCsvDownloaded(); // ✅ Notify parent
-    } catch (err) {
-      setLogs((prev) => [...prev, `❌ CSV download failed: ${String(err)}`]);
-    }
-  }
-
-  async function handleDelete() {
-    try {
-      setDeleting(true);
-      await onDeleteCsv(); // ✅ handled by page.tsx
-    } finally {
-      setDeleting(false);
     }
   }
 
@@ -96,7 +41,7 @@ export function SearchMode({
     <Card>
       <CardHeader>
         <CardTitle className="text-pretty">Search Scraper</CardTitle>
-        <CardDescription>Enter a keyword to scrape.</CardDescription>
+        <CardDescription>Enter a keyword to scrape products and store temporarily in DB.</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -111,31 +56,13 @@ export function SearchMode({
         </div>
 
         <div className="flex gap-3">
-          <Button onClick={runScraper} disabled={loading}>
+          <Button onClick={handleRun} disabled={loading}>
             {loading ? "Running..." : "Run Scraper"}
           </Button>
-
-          {/* ✅ Download CSV button */}
-          <Button variant="outline" onClick={handleDownload}>
-            ⬇ Download CSV
-          </Button>
-
-          {/* ✅ Delete CSV button appears only after download */}
-          {csvDownloaded && (
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "🗑 Delete CSV"}
-            </Button>
-          )}
         </div>
 
         <div className="rounded-lg border bg-muted/30 p-3">
-          <div className="mb-2 text-xs font-medium text-muted-foreground">
-            Live Status / Logs
-          </div>
+          <div className="mb-2 text-xs font-medium text-muted-foreground">Live Status / Logs</div>
           <div className="max-h-48 overflow-auto rounded-md bg-background p-2 text-xs leading-relaxed">
             {logs.length === 0 ? (
               <div className="text-muted-foreground">No logs yet.</div>
