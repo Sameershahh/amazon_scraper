@@ -19,6 +19,10 @@ from database import Base  # Base metadata
 # =========================
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    print("❌ DATABASE_URL not found. Please set it in your hosting environment.")
+    raise ValueError("DATABASE_URL not set in environment variables")
+    
 if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
