@@ -15,9 +15,6 @@ The project demonstrates strong skills in backend development, API design, and f
 
 ---
 
-## Sample Screenshots
-
-
 ## Tech Stack
 
 **Backend**
